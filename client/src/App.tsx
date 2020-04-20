@@ -1,7 +1,7 @@
 import React from 'react';
 import logo from './logo.svg';
 import './App.css';
-import Book from "./components/Book/book";
+import Book from "./components/Book/book"
 
 function App() {
   return (
