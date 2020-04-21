@@ -8,6 +8,7 @@ class Book extends React.Component {
     _startTime: Date = new Date();
     _endTime: Date = new Date();
     _sheetArray: Sheet[] = [];
+    _timeDiff: number = 0;
 
 
     // constructor
@@ -30,19 +31,43 @@ class Book extends React.Component {
         // delegate start drag to each component
         this._sheetArray.forEach(sheet => {
             sheet.handleDrag(e);
+            // timer stop
+            if (this.shouldTimerBeStopped(sheet)) {
+                this._endTime = new Date();
+                const timeDIff: number = this._endTime.getTime() - this._startTime.getTime();
+                this._timeDiff = timeDIff;
+                this.forceUpdate();
+                // reset timer stop bool so that the above calculatio is done only once
+                sheet.resetTimerStopBool();
+            }
         });
+    }
+
+
+    // should timer be stopped
+    shouldTimerBeStopped(currentSheet: Sheet) {
+        // We have to delegate part of the responisibility to the sheet
+        // We need to calculate the time diff only once,
+        // Hence check if _timeDIff has its original value, only then
+        // Calculate the time diff
+        return (currentSheet.shouldTimerBeStopped() && this._timeDiff == 0);
+    }
+
+
+    // reset time diff bool
+    // resetting is important to update time on opening the book again
+    resetTimeDiffBool() {
+        this._timeDiff = 0;
     }
 
 
     // handle end drag
     handleEndDrag() {
-        this._endTime = new Date();
-        const timeDIff: Number = this._endTime.getTime()- this._startTime.getTime();
-        console.log(timeDIff);
         // delegate end drag to each component
         this._sheetArray.forEach(sheet => {
             sheet.handleEndDrag();
         });
+        this.resetTimeDiffBool();
     }
 
 
@@ -59,7 +84,7 @@ class Book extends React.Component {
         // Append all the sheets necessary
         let _sheetCollection: any[] = []
         for (let sheetPos: number = 0; sheetPos < 10; sheetPos++) {
-           _sheetCollection.push(<Sheet pos={sheetPos}  key={"sheet"+sheetPos.toString()}/>);
+           _sheetCollection.push(<Sheet pos={sheetPos}  key={"sheet"+sheetPos.toString()} pageNumber={this._timeDiff}/>);
         }
         return (
 

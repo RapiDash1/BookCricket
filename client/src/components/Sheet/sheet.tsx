@@ -3,6 +3,7 @@ import "./sheet.scss";
 
 interface CustomInputProps {
     pos: number;
+    pageNumber: number;
     key: string
   }
 
@@ -11,6 +12,12 @@ class Sheet extends React.Component <CustomInputProps> {
 
     _sheetPos: number = 0;
     _sheetCoverStr : string;
+    // Used to indicate if the timer in book should be stopped
+    _timerStopBool: boolean = false;
+    // Used to handle loop from the book
+    // If the loop in book has already gone through this sheet in the previous iteration
+    // ewhere rot was greater than 75deg then don't allow that
+    _stopTimerLoop: boolean = false;
 
     // constructor 
     constructor(props : any) {
@@ -28,9 +35,9 @@ class Sheet extends React.Component <CustomInputProps> {
 
     componentDidMount() {
         const sheetCover = document.querySelector("."+this._sheetCoverStr)  as HTMLElement;
-        if (this._sheetPos == 0 || this._sheetPos == 9) {sheetCover.style.backgroundColor = "green";}
+        if (this._sheetPos == 0 || this._sheetPos == 9) {sheetCover.style.backgroundColor = "#50C878";}
         else {sheetCover.style.backgroundColor = "white";}
-        sheetCover.style.boxShadow = "3px 5px 5px";
+        sheetCover.style.boxShadow = "2px 3px 4px 0.05px";
     }
 
 
@@ -54,25 +61,75 @@ class Sheet extends React.Component <CustomInputProps> {
         // the angle the sheets should turn is based on the sheetPos
         // This is done so that the sheets move at a different rate,
         // which looks better
-        return relativeDist/(5 - this._sheetPos*0.15);
+        return relativeDist/(6 - this._sheetPos*0.15);
     }
 
 
     // handle drag
     // Translate the sheet based on relative mouse position
+    // Returns true if time considered for page number
+    // calculation should be stopped 
     handleDrag(e: any) {
         // x position of the bottom right corner of the sheet
-        const originX = window.innerWidth*0.6;
+        const dragButtonPosMultiplier = (window.innerWidth < 1500) ? 0.5 : 0.37;
+        const originX = window.innerWidth*dragButtonPosMultiplier;
         const sheetCover = document.querySelector("."+this._sheetCoverStr) as HTMLElement;
         const currentYRot = this.convertRoataionToNumber(sheetCover.style.transform, true);
         //  Below formula emulates a good fit for drag movement to sheet angle
         const newYRot = this.translationToRotation(e.screenX - originX);
         // new angle is being restricted to -155deg, this offers good tradeoff between,
         // dragging distance and duration
-        if (currentYRot >= newYRot && newYRot >= -155 + this.sheetAngleOffset()) {
-            sheetCover.style["transform"] = "rotateY(" + newYRot.toString() + "deg" +")";
+        if (currentYRot >= newYRot) {
+            // Comsidering one of the sheet which opens last
+            // Use this to display the page number
+            if (this.shouldPageNumberDisplay() && newYRot <= -70 && !this._stopTimerLoop) {
+                // stop the timer after a certain angle
+                // Dont set the timer bool always, only if it is false, i.e..., only once
+                if (!this._timerStopBool) {
+                    this._timerStopBool = true;
+                    this._stopTimerLoop = true;
+                }
+            }
+            if (newYRot >= -145 + this.sheetAngleOffset()) {
+                sheetCover.style["transform"] = "rotateY(" + newYRot.toString() + "deg" +")";
+            }
         }
+        return false;
         
+    }
+
+
+    // should page number be displayed
+    // Only the last page which turns over should display the page number
+    shouldPageNumberDisplay() {
+        return this._sheetPos == 5;
+    }
+
+
+    shouldNextPageNumberDisplay() {
+        return this._sheetPos == 4;
+    }
+
+
+    // reset timer stop bool
+    // its necessary to reset this, or else
+    // the time difference will be considered each time handleDrag is called
+    resetTimerStopBool() {
+        this._timerStopBool = false;
+    }
+
+
+    // should timer be stopped
+    // HandleDrag in book uses this to stop the timer
+    shouldTimerBeStopped() {
+        return this._timerStopBool; 
+    }
+
+
+    // reset stop timer loop
+    // this needs to be done inorder to get the new timeDiff value in book
+    resetStopTimerLoop() {
+        this._stopTimerLoop = false
     }
 
 
@@ -87,6 +144,7 @@ class Sheet extends React.Component <CustomInputProps> {
     // Handle End drag
     // Set end time and reset sheet
     handleEndDrag() {
+        this.resetStopTimerLoop();
         this.resetsheet();
     }
 
@@ -108,8 +166,13 @@ class Sheet extends React.Component <CustomInputProps> {
 
     // render
     render() {
+        // Display pageNumber if page is 4
+        // Display next page number if page is 4
+        // Dont display anything else
+        const sheetNumber = (this.shouldPageNumberDisplay()) ? <p className="page-number">{this.props.pageNumber}</p> : (this.shouldNextPageNumberDisplay()) ? <p className="next-page-number">{this.props.pageNumber+1}</p> : null;
+        
         return (
-            <div className={this._sheetCoverStr}></div> 
+        <div className={this._sheetCoverStr}>{sheetNumber}</div> 
         );
     }
 }
