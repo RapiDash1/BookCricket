@@ -88,7 +88,7 @@ class Book extends React.Component {
         }
         return (
 
-            <div>
+            <div className="complete-book">
                 {/* Invisible button */}
                 {/* When dragged translates distance into sheet opening angle*/}
                 <button className="drag-button"  draggable="true" onDragStart={this.handleStartDrag} onDrag={this.handleDrag.bind(this)} onDragEnd={this.handleEndDrag}>DragMe</button>

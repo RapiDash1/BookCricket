@@ -4,6 +4,4 @@
     backface-visibility: visible;
     transform-style: preserve-3d;
     perspective: 1200px;
-    width: 100vw;
-    height: 100vh;
 }

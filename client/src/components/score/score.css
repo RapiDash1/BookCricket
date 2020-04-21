@@ -1,0 +1,24 @@
+.score {
+    padding: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.scoring-div {
+    align-items: center;
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    padding-top: 15%;
+    padding-bottom: 15%;
+}
+
+.scoring-key {
+    font-size: 4em;
+    color: greenyellow;
+}
+
+.scoring-val {
+    font-size: 4em;
+    color: white;
+}

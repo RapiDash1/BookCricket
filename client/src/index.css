@@ -1,6 +1,6 @@
 body {
   display: flex;
-  background-color: black;
+  background-color: rgb(44, 43, 43);
   overflow-x: hidden;
   margin: 0;
 }

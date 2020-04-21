@@ -71,7 +71,7 @@ class Sheet extends React.Component <CustomInputProps> {
     // calculation should be stopped 
     handleDrag(e: any) {
         // x position of the bottom right corner of the sheet
-        const dragButtonPosMultiplier = (window.innerWidth < 1500) ? 0.5 : 0.37;
+        const dragButtonPosMultiplier = (window.innerWidth < 1500) ? 0.5 : 0.47;
         const originX = window.innerWidth*dragButtonPosMultiplier;
         const sheetCover = document.querySelector("."+this._sheetCoverStr) as HTMLElement;
         const currentYRot = this.convertRoataionToNumber(sheetCover.style.transform, true);
