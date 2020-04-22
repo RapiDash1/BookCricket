@@ -116,7 +116,6 @@ class Book extends React.Component<customBookProps> {
            _sheetCollection.push(<Sheet pos={sheetPos}  key={"sheet"+sheetPos.toString()} pageNumber={this._timeDiff}/>);
         }
         return (
-
             <div className="complete-book">
                 {/* Invisible button */}
                 {/* When dragged translates distance into sheet opening angle*/}
