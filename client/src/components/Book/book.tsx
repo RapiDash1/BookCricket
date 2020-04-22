@@ -1,14 +1,25 @@
 import React from "react";
 import Sheet from "../Sheet/sheet";
-import "./book.css"
+import "./book.css";
+import App from "../../App";
+
+interface customBookProps {
+    appCallBack: (currentSheetScore: number) => void;
+}
 
 
-class Book extends React.Component {
+class Book extends React.Component<customBookProps> {
 
+    // get the start time for calculating score
     _startTime: Date = new Date();
+    // get the end time for calculating score
     _endTime: Date = new Date();
+    // Hold all the sheet instances to manipulate sheet elements
     _sheetArray: Sheet[] = [];
+    // Time diff translates into score
     _timeDiff: number = 0;
+    // Score after each book turn
+    _currentScore: number = 0;
 
 
     // constructor
@@ -22,6 +33,7 @@ class Book extends React.Component {
 
     // handle start drag
     handleStartDrag() {
+        // start time checkpoint
         this._startTime = new Date();
     }
 
@@ -33,9 +45,14 @@ class Book extends React.Component {
             sheet.handleDrag(e);
             // timer stop
             if (this.shouldTimerBeStopped(sheet)) {
+                // end time checkpoint
                 this._endTime = new Date();
                 const timeDIff: number = this._endTime.getTime() - this._startTime.getTime();
                 this._timeDiff = timeDIff;
+                // take only the last digit of time diff
+                // that's how book cricket scores are calculated
+                this._currentScore = Number(timeDIff.toString().slice(-1));
+                // force rerender of the component to upodate the page values on each sheet
                 this.forceUpdate();
                 // reset timer stop bool so that the above calculatio is done only once
                 sheet.resetTimerStopBool();
@@ -68,11 +85,14 @@ class Book extends React.Component {
             sheet.handleEndDrag();
         });
         this.resetTimeDiffBool();
+        // Set totalScore in app using callback
+        this.props.appCallBack(this._currentScore);
     }
 
 
     // component did mount
     componentDidMount() {
+        // Add sheet instances to manipulate later
         for (let sheetPos: number = 0; sheetPos < 10; sheetPos++) {
             this._sheetArray.push(new Sheet({pos:sheetPos}));
         }
