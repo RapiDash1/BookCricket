@@ -49,9 +49,18 @@ class Book extends React.Component<customBookProps> {
                 this._endTime = new Date();
                 const timeDIff: number = this._endTime.getTime() - this._startTime.getTime();
                 this._timeDiff = timeDIff;
+                // If the number is odd.convert it to even
+                // This is done to increase the probability of 0 occuring
+                if (this._timeDiff % 2 != 0) {
+                    const rand = Math.random()*3;
+                    const roundedRand = Math.floor(rand);
+                    if (roundedRand == 0) {
+                        this._timeDiff += 1;
+                    }
+                }
                 // take only the last digit of time diff
                 // that's how book cricket scores are calculated
-                this._currentScore = Number(timeDIff.toString().slice(-1));
+                this._currentScore = Number(this._timeDiff.toString().slice(-1));
                 // force rerender of the component to upodate the page values on each sheet
                 this.forceUpdate();
                 // reset timer stop bool so that the above calculatio is done only once

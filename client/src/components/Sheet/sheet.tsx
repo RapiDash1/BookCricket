@@ -71,7 +71,7 @@ class Sheet extends React.Component <CustomInputProps> {
     // calculation should be stopped 
     handleDrag(e: any) {
         // x position of the bottom right corner of the sheet
-        const dragButtonPosMultiplier = (window.innerWidth < 1500) ? 0.5 : 0.47;
+        const dragButtonPosMultiplier = (window.innerWidth < 1500) ? 0.5 : 0.55;
         const originX = window.innerWidth*dragButtonPosMultiplier;
         const sheetCover = document.querySelector("."+this._sheetCoverStr) as HTMLElement;
         const currentYRot = this.convertRoataionToNumber(sheetCover.style.transform, true);
@@ -137,7 +137,7 @@ class Sheet extends React.Component <CustomInputProps> {
     // Give an offset to every sheet
     // THe sheets should be clustered around the beginning and the end for better visibility of score
     sheetAngleOffset() {
-        return (this._sheetPos > 4) ? (9 - this._sheetPos)*5 : (155 - this._sheetPos*10) 
+        return (this._sheetPos >= 5) ? (9 - this._sheetPos)*5 : (145 - this._sheetPos*10) 
     }
 
 
