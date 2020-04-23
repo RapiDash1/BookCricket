@@ -5,12 +5,15 @@ import Book from "./components/Book/book";
 import Navbar from "./components/Navbar/navbar";
 import Score from "./components/score/score";
 import Out from "./components/out/out";
-import io from "socket.io-client";
+import EnterCode from "./components/EnterCode/enterCode";
+import socketIo from "socket.io-client";
 
 class App extends React.Component<{}, {opponentScore: number}> {
 
   _totalScore: number = 0;
   _isOut: boolean = false;
+  socket = socketIo("http://localhost:3000/");
+  _customPlayerCode: string = "";
 
   constructor(props: any) {
     super(props);
@@ -18,9 +21,12 @@ class App extends React.Component<{}, {opponentScore: number}> {
     this.state = {
       opponentScore: 0
     }
-
+    
+    // binding functions
     this.bookCallBack = this.bookCallBack.bind(this);
     this.resetTotalScore = this.resetTotalScore.bind(this);
+    this.sendPlayerScore = this.sendPlayerScore.bind(this);
+    this.codeCallBack = this.codeCallBack.bind(this);
   }
 
   // toggle out window
@@ -29,9 +35,12 @@ class App extends React.Component<{}, {opponentScore: number}> {
     outComponent.toggleOutWindow();
   }
 
+
   // Handkle book call back
   // Sccore is updated here everytime drag is ended
   bookCallBack(currentSheetScore: number) {
+    // send player score to opponent after each turn 
+    this.sendPlayerScore(currentSheetScore);
     if (currentSheetScore == 0) {
       setTimeout(() => {
         this._isOut = true;
@@ -63,13 +72,31 @@ class App extends React.Component<{}, {opponentScore: number}> {
   }
 
 
+  // send player score
+  sendPlayerScore(currScore: number) {
+    this.socket.emit("playerScore", {score: currScore.toString(), customCode: this._customPlayerCode});
+  }
+
+
+  // code call back
+  // handles sending game initial code to server
+  codeCallBack(code: string) {
+    this.socket.emit("customCommonCode", code);
+  }
+
+
+  // component did mount
   componentDidMount() {
-    const socket = io("http://localhost:3000/");
-    socket.on("opponentScore", (message: string) => {
+    this.socket.on("opponentScore", (message: string) => {
+      console.log(message);
       this.setState({
         opponentScore: Number(message)
       });
     });
+
+    this.socket.on("playerCode", (playerCode: string) => {
+      this._customPlayerCode = playerCode;
+    })
   }
 
 
@@ -78,6 +105,7 @@ class App extends React.Component<{}, {opponentScore: number}> {
     return(
         <div className="App">
           <Out finalScore={this._totalScore}/>
+          <EnterCode parentCallBack={this.codeCallBack} />
           <Navbar parentCallback={() => {}} />
           <div className="body-container">
             <div className="first-row">

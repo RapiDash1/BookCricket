@@ -1,5 +1,5 @@
 import React from "react";
-import "./out.css";
+import "./out.scss";
 
 interface customOutInterface {
     finalScore: number
