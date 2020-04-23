@@ -38,7 +38,7 @@ class EnterCode extends React.Component<customenterCodeInterface> {
                 <div className="display-enterCode">
                     <p className="enterCode-text">Enter custom code</p>
                     <input type="text" name="code-text" className="code-text-input"/>
-                    <button className="exit-button" onClick={this.getCode}>Exit</button>
+                    <button className="Enter-game-button" onClick={this.getCode}>Enter Game</button>
                 </div>
             </div>
         );
