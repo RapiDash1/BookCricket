@@ -21,7 +21,7 @@ class Book extends React.Component<customBookProps> {
     // Time diff translates into score
     _timeDiff: number = 0;
     // Score after each book turn
-    _currentScore: number = 0;
+    _pageNumber: number = 0;
 
 
     // constructor
@@ -62,7 +62,7 @@ class Book extends React.Component<customBookProps> {
                 }
                 // take only the last digit of time diff
                 // that's how book cricket scores are calculated
-                this._currentScore = Number(this._timeDiff.toString().slice(-1));
+                this._pageNumber = Number(this._timeDiff.toString());
                 // force rerender of the component to upodate the page values on each sheet
                 this.forceUpdate();
                 // reset timer stop bool so that the above calculatio is done only once
@@ -100,7 +100,7 @@ class Book extends React.Component<customBookProps> {
         });
         this.resetTimeDiffBool();
         // Set totalScore in app using callback
-        if (this.props.appCallBack) this.props.appCallBack(this._currentScore);
+        if (this.props.appCallBack) this.props.appCallBack(this._pageNumber);
     }
 
 

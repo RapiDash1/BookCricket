@@ -9,7 +9,7 @@ import Sheet from "./components/Sheet/sheet";
 import EnterCode from "./components/EnterCode/enterCode";
 import socketIo from "socket.io-client";
 
-class App extends React.Component<{}, {opponentScore: number}> {
+class App extends React.Component<{}, {opponentScore: string}> {
 
   _totalScore: number = 0;
   _isOut: boolean = false;
@@ -20,7 +20,7 @@ class App extends React.Component<{}, {opponentScore: number}> {
     super(props);
 
     this.state = {
-      opponentScore: 0
+      opponentScore: "0",
     }
     
     // binding functions
@@ -40,10 +40,10 @@ class App extends React.Component<{}, {opponentScore: number}> {
 
   // Handkle book call back
   // Sccore is updated here everytime drag is ended
-  bookCallBack(currentSheetScore: number) {
+  bookCallBack(currentSheetPageNumber: number) {
     // send player score to opponent after each turn 
-    this.sendPlayerScore(currentSheetScore);
-    if (currentSheetScore == 0) {
+    this.sendPlayerScore(currentSheetPageNumber);
+    if (currentSheetPageNumber % 10 == 0) {
       setTimeout(() => {
         this._isOut = true;
         this.toggleOutWindow();
@@ -53,7 +53,7 @@ class App extends React.Component<{}, {opponentScore: number}> {
         this.resetTotalScore();
       }, 1800);
     } else {
-      this._totalScore += currentSheetScore;
+      this._totalScore += Number(currentSheetPageNumber.toString().slice(-1));
       // Total time for book opoen position hold and close aniation is 1.9s + 1.5s = 3.4s
       // Timeout for 2.5s so that we give enough time for the book
       // to close partially, so that page number wont be visible when
@@ -95,11 +95,27 @@ class App extends React.Component<{}, {opponentScore: number}> {
 
   // component did mount
   componentDidMount() {
-    this.socket.on("opponentScore", (message: string) => {
-      console.log(message);
+    this.socket.on("opponentScore", (oppScore: string) => {
+      console.log(oppScore);
       this.setState({
-        opponentScore: Number(message)
+        opponentScore: oppScore
       });
+
+
+      // Move this to player page number
+      // Also change .emit("opponentScore", score) to .emit("opponentScore", totalScore)
+      // As we need to update opponent core with total score and not last index number
+
+      
+      // sheets are arranged in a book as a stack, hence page 5 appears first
+      const rightSheet = document.querySelector(".sheet-cover5") as HTMLElement;
+      const rightSheetPara =  rightSheet.querySelector(".page-number") as HTMLElement;
+      rightSheetPara.innerText = oppScore;
+
+      // page 4 is on the right side
+      const leftSheet = document.querySelector(".sheet-cover4") as HTMLElement;
+      const leftSheetPara =  leftSheet.querySelector(".next-page-number") as HTMLElement;
+      leftSheetPara.innerText = (Number(oppScore)+1).toString(); 
     });
 
     // set player codes

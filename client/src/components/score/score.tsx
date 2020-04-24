@@ -3,7 +3,7 @@ import "./score.css";
 
 interface scoreCustomProps {
     playerScore: number;
-    opponentScore: number
+    opponentScore: string
 }
 
 class Score extends React.Component<scoreCustomProps> {
