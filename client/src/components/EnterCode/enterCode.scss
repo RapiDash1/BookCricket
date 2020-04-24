@@ -10,6 +10,7 @@
 
 .display-enterCode {
     @extend .display-out;
+    justify-content: space-around !important;
 }
 
 .enterCode-text {
@@ -22,4 +23,21 @@
 
 .Enter-game-button:hover {
     @extend .exit-button:hover;
+}
+
+.code-text-input {
+    height: 10% ;
+    font-size: 2em;
+    text-align: center;
+}
+
+@media only screen and (max-width: 1024px) {
+
+    .enterCode-text {
+        font-size: 1.4em;
+    }
+
+    .code-text-input {
+        width: 60%;
+    }
 }

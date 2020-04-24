@@ -20,8 +20,10 @@ let server = app.listen(3000, () => {
 const socketIo = require("socket.io").listen(server);
 
 
-
+// on establishing connection
 socketIo.on("connection", (socket) => {
+
+    // handle adding players to soclet map
     socket.on("customCommonCode", (code) => {
         // Add socket into map with respective key
         if (socketMap.hasOwnProperty(code+"_A")) {
@@ -29,21 +31,51 @@ socketIo.on("connection", (socket) => {
             socketMap[code+"_B"] = socket;
             // send player code back
             socket.emit("playerCode", code+"_B");
+        } else if (socketMap.hasOwnProperty(code+"_B")) {
+            // do nothing since two players are already connected
         } else {
             socketMap[code+"_A"] = socket;
             // send player code back
             socket.emit("playerCode", code+"_A");
         }
-        console.log("created custom code player map");
-    })
+        console.log("Added player to player map");
+    });
+
+    // handling sending scores between two players
     socket.on("playerScore", ({score: scoreVal, customCode: ccVal}) => {
         console.log("custom player val : " + ccVal);
-        // Calculate the last character (A or B) for player that should reccieve the score
-        const lastCodeChar = (ccVal.slice(-1) == "A") ? "B" : "A";
-        // Create the player name by exchanging the last character
-        const opponentPlayer = ccVal.slice(0,-1) + lastCodeChar;
+        // get opponent player key
+        let opponentPlayer = opponentPlayerKey(ccVal);
         console.log("playerscore detected " + scoreVal);
-        // emit score to opponentPlayer
-        socketMap[opponentPlayer].emit("opponentScore", scoreVal);
+        // if opponent player exists
+        if (socketMap[opponentPlayer]) {
+            // emit score to opponentPlayer
+            socketMap[opponentPlayer].emit("opponentScore", scoreVal);
+        }
     });
+
+    // handle book opening of opponent player
+    socket.on("bookOpenAngle", ({bookAngle: angle, customCode: ccVal, sheetPos: coverPos}) => {
+        // get opponent player key
+        let opponentPlayer = opponentPlayerKey(ccVal);  
+        if (socketMap[opponentPlayer]) {
+            console.log("Open angle emitted");
+            // emit score to opponentPlayer
+            // send angle and which sheet to rotate
+            socketMap[opponentPlayer].emit("openBookWithOpponentAngle", {sheetAngle: angle, sheetCoverPos: coverPos});
+        }
+    }) 
+
 });
+
+
+function opponentPlayerKey(customCodeStr) {
+    // Calculate the last character (A or B) for player that should reccieve the score
+   if (customCodeStr) {
+    const lastCodeChar = (customCodeStr.slice(-1) == "A") ? "B" : "A";
+    // Create the player name by exchanging the last character
+    const opponentPlayer = customCodeStr.slice(0,-1) + lastCodeChar;
+    return opponentPlayer;
+   } 
+   return null;
+}

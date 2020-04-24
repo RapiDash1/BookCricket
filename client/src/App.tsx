@@ -27,6 +27,7 @@ class App extends React.Component<{}, {opponentScore: number}> {
     this.resetTotalScore = this.resetTotalScore.bind(this);
     this.sendPlayerScore = this.sendPlayerScore.bind(this);
     this.codeCallBack = this.codeCallBack.bind(this);
+    this.getCustomPlayerCode = this.getCustomPlayerCode.bind(this);
   }
 
   // toggle out window
@@ -62,6 +63,12 @@ class App extends React.Component<{}, {opponentScore: number}> {
     }
   }
 
+  // get custom pleayer code
+  // used to return updated customPlayerCode in sheet
+  getCustomPlayerCode() {
+    return this._customPlayerCode;
+  }
+
 
   // reset total score
   resetTotalScore() {
@@ -94,26 +101,38 @@ class App extends React.Component<{}, {opponentScore: number}> {
       });
     });
 
+    // set player codes
     this.socket.on("playerCode", (playerCode: string) => {
+      // setting player code that is given back by the server
+      // this playerCode is used to tie players and opponents together
       this._customPlayerCode = playerCode;
+    });
+
+    // open book wile opponent is animating
+    this.socket.on("openBookWithOpponentAngle", (sheetInfo: any) => {
+      console.log("oppening book");
+      // rotate the sheet of .sheetInfo.sheetCoverPos class bt sheetInfo.sheetAngle angle 
+      const sheetCover = document.querySelector("."+sheetInfo.sheetCoverPos) as HTMLElement;
+        sheetCover.style["transform"] = "rotateY(" + sheetInfo.sheetAngle + "deg" +")";
     })
+
   }
 
 
   // render
   render() {
     return(
-        <div className="App">
-          <Out finalScore={this._totalScore}/>
-          <EnterCode parentCallBack={this.codeCallBack} />
-          <Navbar parentCallback={() => {}} />
-          <div className="body-container">
-            <div className="first-row">
-              <Book appCallBack={this.bookCallBack} /> 
-              <Score playerScore={this._totalScore} opponentScore={this.state.opponentScore}/>
-            </div>
+      <div className="App">
+        <Out finalScore={this._totalScore}/>
+        <EnterCode parentCallBack={this.codeCallBack} />
+        <Navbar parentCallback={() => {}} />
+        <div className="body-container">
+          <div className="first-row">
+            <Book appCallBack={this.bookCallBack} socket={this.socket} customPlayerCode={this.getCustomPlayerCode} /> 
+            <Score playerScore={this._totalScore} opponentScore={this.state.opponentScore}/>
           </div>
         </div>
+      </div>
     );
   }
 }

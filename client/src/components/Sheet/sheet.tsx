@@ -69,7 +69,7 @@ class Sheet extends React.Component <CustomInputProps> {
     // Translate the sheet based on relative mouse position
     // Returns true if time considered for page number
     // calculation should be stopped 
-    handleDrag(e: any) {
+    handleDrag(e: any, socket: any, customPlayerCodeStr: () => string) {
         // x position of the bottom right corner of the sheet
         const dragButtonPosMultiplier = (window.innerWidth < 1500) ? 0.5 : 0.55;
         const originX = window.innerWidth*dragButtonPosMultiplier;
@@ -86,12 +86,17 @@ class Sheet extends React.Component <CustomInputProps> {
                 // stop the timer after a certain angle
                 // Dont set the timer bool always, only if it is false, i.e..., only once
                 if (!this._timerStopBool) {
+                    // stop timer
                     this._timerStopBool = true;
+                    // stop loop
                     this._stopTimerLoop = true;
                 }
             }
             if (newYRot >= -145 + this.sheetAngleOffset()) {
                 sheetCover.style["transform"] = "rotateY(" + newYRot.toString() + "deg" +")";
+                // send this info to server so that
+                // opponent can have the same animation while watching
+                socket.emit("bookOpenAngle", {bookAngle: newYRot, customCode: customPlayerCodeStr(), sheetPos: this._sheetCoverStr});
             }
         }
         return false;

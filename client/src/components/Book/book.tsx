@@ -5,6 +5,8 @@ import App from "../../App";
 
 interface customBookProps {
     appCallBack: (currentSheetScore: number) => void;
+    socket: any;
+    customPlayerCode: () => string
 }
 
 
@@ -42,7 +44,7 @@ class Book extends React.Component<customBookProps> {
     handleDrag(e: any) {
         // delegate start drag to each component
         this._sheetArray.forEach(sheet => {
-            sheet.handleDrag(e);
+            sheet.handleDrag(e, this.props.socket, this.props.customPlayerCode);
             // timer stop
             if (this.shouldTimerBeStopped(sheet)) {
                 // end time checkpoint
