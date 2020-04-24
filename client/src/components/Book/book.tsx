@@ -91,13 +91,16 @@ class Book extends React.Component<customBookProps> {
 
     // handle end drag
     handleEndDrag() {
+        // first convey stop animmaton to opponent
+        // then stop current player's animation
+        this.props.socket.emit("opponentBookStopOpeningAnimation", {playerCode: this.props.customPlayerCode()});
         // delegate end drag to each component
         this._sheetArray.forEach(sheet => {
             sheet.handleEndDrag();
         });
         this.resetTimeDiffBool();
         // Set totalScore in app using callback
-        this.props.appCallBack(this._currentScore);
+        if (this.props.appCallBack) this.props.appCallBack(this._currentScore);
     }
 
 

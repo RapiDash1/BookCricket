@@ -61,7 +61,11 @@ class Sheet extends React.Component <CustomInputProps> {
         // the angle the sheets should turn is based on the sheetPos
         // This is done so that the sheets move at a different rate,
         // which looks better
-        return relativeDist/(6 - this._sheetPos*0.15);
+        // maxDivisor is lower for mobile screens since
+        // there will be lesser distance to travel to skip the book
+        // Full rotatioin should happen for a smaller relative distance
+        const maxDivisor = (window.innerWidth <= 1200) ? 3 : 6;
+        return relativeDist/(maxDivisor - this._sheetPos*0.15);
     }
 
 
@@ -71,12 +75,15 @@ class Sheet extends React.Component <CustomInputProps> {
     // calculation should be stopped 
     handleDrag(e: any, socket: any, customPlayerCodeStr: () => string) {
         // x position of the bottom right corner of the sheet
-        const dragButtonPosMultiplier = (window.innerWidth < 1500) ? 0.5 : 0.55;
+        const dragButtonPosMultiplier = (window.innerWidth < 1200) ? 0.75 : 0.55;
         const originX = window.innerWidth*dragButtonPosMultiplier;
         const sheetCover = document.querySelector("."+this._sheetCoverStr) as HTMLElement;
         const currentYRot = this.convertRoataionToNumber(sheetCover.style.transform, true);
+        // get the actual width of the window
+        // e.screenX returns the positon of the mouse wrt the whole screen
+        const actualWindowWidth = e.screenX - window.screenLeft;
         //  Below formula emulates a good fit for drag movement to sheet angle
-        const newYRot = this.translationToRotation(e.screenX - originX);
+        const newYRot = this.translationToRotation(actualWindowWidth - originX);
         // new angle is being restricted to -155deg, this offers good tradeoff between,
         // dragging distance and duration
         if (currentYRot >= newYRot) {

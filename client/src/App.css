@@ -16,3 +16,12 @@
     grid-template-columns: 1fr 1fr;
     justify-content: center;
 }
+
+
+@media only screen and (max-width: 1024px) {
+    .first-row {
+        display: grid;
+        grid-template-columns: auto;
+        grid-template-rows: 1fr 1fr;
+    }
+}

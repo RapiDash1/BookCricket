@@ -43,14 +43,13 @@ socketIo.on("connection", (socket) => {
 
     // handling sending scores between two players
     socket.on("playerScore", ({score: scoreVal, customCode: ccVal}) => {
-        console.log("custom player val : " + ccVal);
         // get opponent player key
         let opponentPlayer = opponentPlayerKey(ccVal);
-        console.log("playerscore detected " + scoreVal);
         // if opponent player exists
         if (socketMap[opponentPlayer]) {
             // emit score to opponentPlayer
             socketMap[opponentPlayer].emit("opponentScore", scoreVal);
+            console.log("opponent score emitted");
         }
     });
 
@@ -59,12 +58,21 @@ socketIo.on("connection", (socket) => {
         // get opponent player key
         let opponentPlayer = opponentPlayerKey(ccVal);  
         if (socketMap[opponentPlayer]) {
-            console.log("Open angle emitted");
             // emit score to opponentPlayer
             // send angle and which sheet to rotate
             socketMap[opponentPlayer].emit("openBookWithOpponentAngle", {sheetAngle: angle, sheetCoverPos: coverPos});
+            console.log("Open angle emitted");
         }
-    }) 
+    });
+    
+    
+    socket.on("opponentBookStopOpeningAnimation", ({playerCode: customPlayerCode}) => {
+        let opponentPlayer = opponentPlayerKey(customPlayerCode);  
+        if (socketMap[opponentPlayer]) {
+            socketMap[opponentPlayer].emit("opponentBookStopOpeningAnimation");
+            console.log("closing book event emited");
+        }
+    })
 
 });
 

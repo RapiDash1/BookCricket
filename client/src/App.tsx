@@ -5,6 +5,7 @@ import Book from "./components/Book/book";
 import Navbar from "./components/Navbar/navbar";
 import Score from "./components/score/score";
 import Out from "./components/out/out";
+import Sheet from "./components/Sheet/sheet";
 import EnterCode from "./components/EnterCode/enterCode";
 import socketIo from "socket.io-client";
 
@@ -113,8 +114,21 @@ class App extends React.Component<{}, {opponentScore: number}> {
       console.log("oppening book");
       // rotate the sheet of .sheetInfo.sheetCoverPos class bt sheetInfo.sheetAngle angle 
       const sheetCover = document.querySelector("."+sheetInfo.sheetCoverPos) as HTMLElement;
-        sheetCover.style["transform"] = "rotateY(" + sheetInfo.sheetAngle + "deg" +")";
+      sheetCover.style["transform"] = "rotateY(" + sheetInfo.sheetAngle + "deg" +")";
     })
+
+    // player book closing animation
+    // triggered by opponent
+    this.socket.on("opponentBookStopOpeningAnimation", () => {
+      // handle sheet closing animation per sheet
+      for (let sheetPos: number = 0; sheetPos < 10; sheetPos++) {
+        const sheet = new Sheet({pos:sheetPos});
+        sheet.handleEndDrag();
+      }
+    });
+
+
+    // TODO: show opponent score to player when opponent opens book
 
   }
 
