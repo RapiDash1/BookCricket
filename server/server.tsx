@@ -105,6 +105,13 @@ socketIo.on("connection", (socket) => {
 
 });
 
+// disconnect
+socketIo.on("disconnect", (socket) => {
+    Array.from(Object.keys(socketMap)).forEach(user => {
+        if (socketMap[user] == socket) delete socketMap[user];
+    });
+});
+
 
 function opponentPlayerKey(customCodeStr) {
     // Calculate the last character (A or B) for player that should reccieve the score
