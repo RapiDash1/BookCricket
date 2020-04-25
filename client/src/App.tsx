@@ -29,6 +29,7 @@ class App extends React.Component<{}, {opponentScore: string}> {
     this.sendPlayerScore = this.sendPlayerScore.bind(this);
     this.codeCallBack = this.codeCallBack.bind(this);
     this.getCustomPlayerCode = this.getCustomPlayerCode.bind(this);
+    this.sendPlayerPageNumber = this.sendPlayerPageNumber.bind(this);
   }
 
   // toggle out window
@@ -41,11 +42,13 @@ class App extends React.Component<{}, {opponentScore: string}> {
   // Handkle book call back
   // Sccore is updated here everytime drag is ended
   bookCallBack(currentSheetPageNumber: number) {
-    // send player score to opponent after each turn 
-    this.sendPlayerScore(currentSheetPageNumber);
+    // send the current page number to opponent
+    this.sendPlayerPageNumber(currentSheetPageNumber);
+    // If page number is a multiple of 10, then the palyer is out
     if (currentSheetPageNumber % 10 == 0) {
       setTimeout(() => {
         this._isOut = true;
+        this.sendOutMessage();
         this.toggleOutWindow();
         this.forceUpdate();
         // dont reset score before toggling window
@@ -62,6 +65,9 @@ class App extends React.Component<{}, {opponentScore: string}> {
         this.forceUpdate();
       }, 2500);
     }
+    // send player score to opponent after each turn 
+    // should always send this after updating total score
+    this.sendPlayerScore(this._totalScore);
   }
 
   // get custom pleayer code
@@ -86,48 +92,62 @@ class App extends React.Component<{}, {opponentScore: string}> {
   }
 
 
+  // send player page number
+  sendPlayerPageNumber(currentPage:  number) {
+    this.socket.emit("currentPage", {page: currentPage.toString(), playerCode: this._customPlayerCode});
+  }
+
+
+  // send out message to opponent
+  sendOutMessage() {
+    this.socket.emit("outMessage", {playerCode: this._customPlayerCode});
+  }
+
+
   // code call back
   // handles sending game initial code to server
   codeCallBack(code: string) {
     this.socket.emit("customCommonCode", code);
   }
 
+  // final score to be displayed
+  // decide between total score or opponent score
+  // IF this player is not out, hta tmeans the opponent just got out
+  // HEnce show opponent score
+  finalScore() {
+    return (this._isOut) ? this._totalScore : Number(this.state.opponentScore);
+  }
+  
+
+  // Text to be displayed on out dialog box
+  playerText() {
+    return (this._isOut) ? "You are out" : "Opponent is out";
+  }
+
 
   // component did mount
   componentDidMount() {
     this.socket.on("opponentScore", (oppScore: string) => {
-      console.log(oppScore);
+      // console.log(oppScore);
       this.setState({
         opponentScore: oppScore
       });
-
-
-      // Move this to player page number
-      // Also change .emit("opponentScore", score) to .emit("opponentScore", totalScore)
-      // As we need to update opponent core with total score and not last index number
-
-      
-      // sheets are arranged in a book as a stack, hence page 5 appears first
-      const rightSheet = document.querySelector(".sheet-cover5") as HTMLElement;
-      const rightSheetPara =  rightSheet.querySelector(".page-number") as HTMLElement;
-      rightSheetPara.innerText = oppScore;
-
-      // page 4 is on the right side
-      const leftSheet = document.querySelector(".sheet-cover4") as HTMLElement;
-      const leftSheetPara =  leftSheet.querySelector(".next-page-number") as HTMLElement;
-      leftSheetPara.innerText = (Number(oppScore)+1).toString(); 
     });
 
+
     // set player codes
-    this.socket.on("playerCode", (playerCode: string) => {
+    this.socket.on("playerCode", (playerInitInfoMap: {playerCode: string, initSession: boolean}) => {
       // setting player code that is given back by the server
       // this playerCode is used to tie players and opponents together
-      this._customPlayerCode = playerCode;
+      this._customPlayerCode = playerInitInfoMap.playerCode;
+      // player session is whether player should play or not
+      this._isOut = playerInitInfoMap.initSession;
+      this.forceUpdate();
     });
 
     // open book wile opponent is animating
     this.socket.on("openBookWithOpponentAngle", (sheetInfo: any) => {
-      console.log("oppening book");
+      // console.log("oppening book");
       // rotate the sheet of .sheetInfo.sheetCoverPos class bt sheetInfo.sheetAngle angle 
       const sheetCover = document.querySelector("."+sheetInfo.sheetCoverPos) as HTMLElement;
       sheetCover.style["transform"] = "rotateY(" + sheetInfo.sheetAngle + "deg" +")";
@@ -143,8 +163,35 @@ class App extends React.Component<{}, {opponentScore: string}> {
       }
     });
 
+    // Display opponent's page number while playing
+    this.socket.on("currentPage", (opponentPageNumber: string) => {
+      // sheets are arranged in a book as a stack, hence page 5 appears first
+      const rightSheet = document.querySelector(".sheet-cover5") as HTMLElement;
+      const rightSheetPara =  rightSheet.querySelector(".page-number") as HTMLElement;
+      rightSheetPara.innerText = opponentPageNumber;
 
-    // TODO: show opponent score to player when opponent opens book
+      // page 4 is on the right side
+      const leftSheet = document.querySelector(".sheet-cover4") as HTMLElement;
+      const leftSheetPara =  leftSheet.querySelector(".next-page-number") as HTMLElement;
+      leftSheetPara.innerText = (Number(opponentPageNumber)+1).toString(); 
+    });
+
+    // Switch player when opponent is out
+    // Display opponent is out message toi current player
+    this.socket.on("outMessage", () => {
+      console.log("Outmessage");
+        // if opponent is out,
+        // current player can start playing
+        this._isOut = false;
+        this.toggleOutWindow();
+        this.forceUpdate();
+    });
+
+
+
+    // TODO: display message stating either player is playing or opponent is playing  
+
+
 
   }
 
@@ -153,12 +200,13 @@ class App extends React.Component<{}, {opponentScore: string}> {
   render() {
     return(
       <div className="App">
-        <Out finalScore={this._totalScore}/>
+        <Out finalScore={this.finalScore()} playerText={this.playerText()}/>
         <EnterCode parentCallBack={this.codeCallBack} />
         <Navbar parentCallback={() => {}} />
         <div className="body-container">
           <div className="first-row">
-            <Book appCallBack={this.bookCallBack} socket={this.socket} customPlayerCode={this.getCustomPlayerCode} /> 
+            {/* If player is not out then it is player's turn */}
+            <Book appCallBack={this.bookCallBack} socket={this.socket} customPlayerCode={this.getCustomPlayerCode} playerTurn={!this._isOut} /> 
             <Score playerScore={this._totalScore} opponentScore={this.state.opponentScore}/>
           </div>
         </div>

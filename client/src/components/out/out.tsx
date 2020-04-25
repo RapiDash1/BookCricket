@@ -2,7 +2,8 @@ import React from "react";
 import "./out.scss";
 
 interface customOutInterface {
-    finalScore: number
+    finalScore: number;
+    playerText: string
 }
 
 class Out extends React.Component<customOutInterface> {
@@ -24,7 +25,7 @@ class Out extends React.Component<customOutInterface> {
         return (
             <div className="out-div remove-out-div">
                 <div className="display-out">
-                    <p className="out-text">You are out</p>
+                    <p className="out-text">{this.props.playerText}</p>
                     <p className="score-text">{this.props.finalScore}</p>
                     <button className="exit-button" onClick={this.toggleOutWindow}>Exit</button>
                 </div>

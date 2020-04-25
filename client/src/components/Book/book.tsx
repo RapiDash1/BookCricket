@@ -6,7 +6,8 @@ import App from "../../App";
 interface customBookProps {
     appCallBack: (currentSheetScore: number) => void;
     socket: any;
-    customPlayerCode: () => string
+    customPlayerCode: () => string;
+    playerTurn: boolean
 }
 
 
@@ -103,6 +104,10 @@ class Book extends React.Component<customBookProps> {
         if (this.props.appCallBack) this.props.appCallBack(this._pageNumber);
     }
 
+    shouldBeDragabble(): boolean {
+        return (this.props.playerTurn) ? true : false;
+    }
+
 
     // component did mount
     componentDidMount() {
@@ -124,7 +129,7 @@ class Book extends React.Component<customBookProps> {
             <div className="complete-book">
                 {/* Invisible button */}
                 {/* When dragged translates distance into sheet opening angle*/}
-                <button className="drag-button"  draggable="true" onDragStart={this.handleStartDrag} onDrag={this.handleDrag.bind(this)} onDragEnd={this.handleEndDrag}>DragMe</button>
+                <button className="drag-button"  draggable={this.shouldBeDragabble()} onDragStart={this.handleStartDrag} onDrag={this.handleDrag.bind(this)} onDragEnd={this.handleEndDrag}>DragMe</button>
                 <div className="book">
                     {_sheetCollection}
                 </div>

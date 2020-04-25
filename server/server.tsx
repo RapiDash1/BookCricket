@@ -7,6 +7,11 @@ app.use(cors());
 // game and make sure they recieve their updates
 let socketMap = {};
 
+
+// current session map
+// has information on who is currently playing
+let playerSession = {}
+
 app.get('/', (req, res) => {
     res.send('<h1>Hello world</h1>');
 });
@@ -30,13 +35,19 @@ socketIo.on("connection", (socket) => {
             // Adding opponent player if customCode_A is already present
             socketMap[code+"_B"] = socket;
             // send player code back
-            socket.emit("playerCode", code+"_B");
+            // player B has the opposite session of player A
+            // if A is plating then B should not
+            playerSession[code+"_B"] = !playerSession[code+"_A"]
+            socket.emit("playerCode", {playerCode: code+"_B", initSession: playerSession[code+"_B"]});
         } else if (socketMap.hasOwnProperty(code+"_B")) {
+            // since B is always populated after A
             // do nothing since two players are already connected
         } else {
             socketMap[code+"_A"] = socket;
-            // send player code back
-            socket.emit("playerCode", code+"_A");
+            playerSession[code+"_A"] = initPlayerSession();
+            // send player code and session info back
+            // session info is wheteher the player is playing or not
+            socket.emit("playerCode", {playerCode: code+"_A", initSession: playerSession[code+"_A"]});
         }
         console.log("Added player to player map");
     });
@@ -65,14 +76,32 @@ socketIo.on("connection", (socket) => {
         }
     });
     
-    
+    // stop book animation for opponent
     socket.on("opponentBookStopOpeningAnimation", ({playerCode: customPlayerCode}) => {
         let opponentPlayer = opponentPlayerKey(customPlayerCode);  
         if (socketMap[opponentPlayer]) {
             socketMap[opponentPlayer].emit("opponentBookStopOpeningAnimation");
             console.log("closing book event emited");
         }
-    })
+    });
+
+    // send current page to opponent
+    socket.on("currentPage", ({page: currentPage, playerCode: customPlayerCode}) => {
+        let opponentPlayer = opponentPlayerKey(customPlayerCode);  
+        if (socketMap[opponentPlayer]) {
+            socketMap[opponentPlayer].emit("currentPage", currentPage);
+            console.log("currentPage event emited");
+        }
+    });
+
+    // Display out messagee in opponent's window
+    socket.on("outMessage", ({playerCode: customPlayerCode}) => {
+        let opponentPlayer = opponentPlayerKey(customPlayerCode); 
+        if (socketMap[opponentPlayer]) {
+            socketMap[opponentPlayer].emit("outMessage");
+            console.log("outMessage event emited");
+        }
+    });
 
 });
 
@@ -86,4 +115,10 @@ function opponentPlayerKey(customCodeStr) {
     return opponentPlayer;
    } 
    return null;
+}
+
+// get the initaial value of player session
+function initPlayerSession() {
+    let index = Math.floor(Math.random()*2);
+    return (index == 0) ? false : true;
 }
