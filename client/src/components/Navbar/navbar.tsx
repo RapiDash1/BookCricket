@@ -2,7 +2,7 @@ import React from "react";
 import "./navbar.css";
 
 
-class Navbar extends React.Component<{ parentCallback: (message: string) => void }, {}> {
+class Navbar extends React.Component<{ parentCallback: (message: string) => void, sessionHeading: string}, {}> {
     constructor(props: any) {
         super(props);
     }
@@ -17,6 +17,7 @@ class Navbar extends React.Component<{ parentCallback: (message: string) => void
         return (
             <nav>
                 <div className="navbar-main">
+                    <p className="session-heading">{this.props.sessionHeading}</p>
                     <div className="Social-Media-selection">
                         <ul className="Social-Media-dropdown">
                             <li className="Social-Media-dd-item"><a href="https://www.instagram.com/sri._vatsa/" target="_blank" id="social-media-element" onClick={this.handleSocialMediaClick}>Instagram</a></li>

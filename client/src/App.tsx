@@ -13,8 +13,10 @@ class App extends React.Component<{}, {opponentScore: string}> {
 
   _totalScore: number = 0;
   _isOut: boolean = false;
-  socket = socketIo("http://localhost:3000/");
+  // http://localhost:3000/
+  socket = socketIo("https://evening-eyrie-36396.herokuapp.com/");
   _customPlayerCode: string = "";
+  _displayPlayererSessionInfo: boolean = false;
 
   constructor(props: any) {
     super(props);
@@ -53,7 +55,6 @@ class App extends React.Component<{}, {opponentScore: string}> {
         this.forceUpdate();
         // dont reset score before toggling window
         // it'll update the reset value to score
-        this.resetTotalScore();
       }, 1800);
     } else {
       this._totalScore += Number(currentSheetPageNumber.toString().slice(-1));
@@ -125,6 +126,15 @@ class App extends React.Component<{}, {opponentScore: string}> {
   }
 
 
+  // session heading
+  sessionHeading() {
+    // don't display anythin before player join a game
+    // player turn is decide then, hence wait for it
+    if (!this._displayPlayererSessionInfo) return "";
+    return (this._isOut) ? "Opponent's turn to play" : "Your turn to play";
+  }
+
+
   // component did mount
   componentDidMount() {
     this.socket.on("opponentScore", (oppScore: string) => {
@@ -142,6 +152,8 @@ class App extends React.Component<{}, {opponentScore: string}> {
       this._customPlayerCode = playerInitInfoMap.playerCode;
       // player session is whether player should play or not
       this._isOut = playerInitInfoMap.initSession;
+      // Display session info once player is connected to a game
+      this._displayPlayererSessionInfo = true;
       this.forceUpdate();
     });
 
@@ -187,12 +199,6 @@ class App extends React.Component<{}, {opponentScore: string}> {
         this.forceUpdate();
     });
 
-
-
-    // TODO: display message stating either player is playing or opponent is playing  
-
-
-
   }
 
 
@@ -202,7 +208,7 @@ class App extends React.Component<{}, {opponentScore: string}> {
       <div className="App">
         <Out finalScore={this.finalScore()} playerText={this.playerText()}/>
         <EnterCode parentCallBack={this.codeCallBack} />
-        <Navbar parentCallback={() => {}} />
+        <Navbar parentCallback={() => {}} sessionHeading={this.sessionHeading()}/>
         <div className="body-container">
           <div className="first-row">
             {/* If player is not out then it is player's turn */}
