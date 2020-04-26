@@ -1,8 +1,6 @@
 const app = require("express")();
 const cors = require("cors");
 
-// Testung auto build
-
 app.use(cors());
 
 // socket map to hold two users in the same
@@ -31,6 +29,9 @@ const socketIo = require("socket.io").listen(server);
 // on establishing connection
 socketIo.on("connection", (socket) => {
     console.log("Player connected");
+    // Sharable player code
+    let sharableCode = uniquePlayerCode();
+    socket.emit("sharableCode", {gameCode: sharableCode});
     // handle adding players to soclet map
     socket.on("customCommonCode", (code) => {
         // Add socket into map with respective key
@@ -136,4 +137,13 @@ function opponentPlayerKey(customCodeStr) {
 function initPlayerSession() {
     let index = Math.floor(Math.random()*2);
     return (index == 0) ? false : true;
+}
+
+
+// returns an unique code
+// this is used by players to enter a game
+function uniquePlayerCode() {
+    const initialValue = 10000;
+    const randomGameNumber = initialValue + Math.round(Math.random() * initialValue);
+    return randomGameNumber;
 }
