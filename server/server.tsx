@@ -12,13 +12,14 @@ let socketMap = {};
 // has information on who is currently playing
 let playerSession = {}
 
+
 app.get('/', (req, res) => {
-    res.send('<h1>Hello world</h1>');
+    res.send('<h1>Book cricket server side</h1>');
 });
 
 
 let server = app.listen(3000, () => {
-    console.log("Listening on port 3000");
+    console.log("Listening on custom port");
 })
 
 
@@ -27,7 +28,7 @@ const socketIo = require("socket.io").listen(server);
 
 // on establishing connection
 socketIo.on("connection", (socket) => {
-
+    console.log("Player connected");
     // handle adding players to soclet map
     socket.on("customCommonCode", (code) => {
         // Add socket into map with respective key
@@ -103,13 +104,18 @@ socketIo.on("connection", (socket) => {
         }
     });
 
-});
-
-// disconnect
-socketIo.on("disconnect", (socket) => {
-    Array.from(Object.keys(socketMap)).forEach(user => {
-        if (socketMap[user] == socket) delete socketMap[user];
+    // disconnect
+    socket.on("disconnect", (socket) => {
+        console.log("disconnect event");
+        Array.from(Object.keys(socketMap)).forEach(user => {
+            if (socketMap[user] == socket) {
+                delete socketMap[user];
+                delete playerSession[user];
+                console.log("player deleted");
+            }
+        });
     });
+
 });
 
 
