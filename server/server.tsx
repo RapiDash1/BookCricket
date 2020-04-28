@@ -43,6 +43,9 @@ socketIo.on("connection", (socket) => {
             // if A is plating then B should not
             playerSession[code+"_B"] = !playerSession[code+"_A"]
             socket.emit("playerCode", {playerCode: code+"_B", initSession: playerSession[code+"_B"]});
+            // After both the players are added to the map, hide the loader since both the players are connected
+            socket.emit("hideLoader");
+            socketMap[code+"_A"].emit("hideLoader");
         } else if (socketMap.hasOwnProperty(code+"_B")) {
             // since B is always populated after A
             // do nothing since two players are already connected
