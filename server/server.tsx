@@ -34,6 +34,7 @@ socketIo.on("connection", (socket) => {
     socket.emit("sharableCode", {gameCode: sharableCode});
     // handle adding players to soclet map
     socket.on("customCommonCode", (code) => {
+        console.log("Inside custom common code");
         // Add socket into map with respective key
         if (socketMap.hasOwnProperty(code+"_A")) {
             // Adding opponent player if customCode_A is already present
@@ -56,7 +57,6 @@ socketIo.on("connection", (socket) => {
             // session info is wheteher the player is playing or not
             socket.emit("playerCode", {playerCode: code+"_A", initSession: playerSession[code+"_A"]});
         }
-        console.log("Added player to player map");
     });
 
     // handling sending scores between two players
@@ -107,6 +107,15 @@ socketIo.on("connection", (socket) => {
         if (socketMap[opponentPlayer]) {
             socketMap[opponentPlayer].emit("outMessage");
             console.log("outMessage event emited");
+        }
+    });
+
+    // Handle sending player message to opponenet
+    socket.on("playerMessage", (messageInfo) => {
+        let opponentPlayer = opponentPlayerKey(messageInfo.customPlayerCode); 
+        if (socketMap[opponentPlayer]) {
+            socketMap[opponentPlayer].emit("opponentMessage", {message: messageInfo.message});
+            console.log("Player message event emited");
         }
     });
 
